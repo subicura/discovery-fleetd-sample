@@ -1,0 +1,22 @@
+[Unit]
+Description=Web1 Sidekick Container
+
+Requires=etcd.service
+After=etcd.service
+After=web.1.service
+BindsTo=web.1.service
+
+[Service]
+EnvironmentFile=/etc/environment
+
+ExecStartPre=/bin/sh -c "sleep 5"
+ExecStart=/bin/sh -c \
+  "SERVICE_PORT=$(docker inspect --format='{{(index (index .NetworkSettings.Ports \"80/tcp\") 0).HostPort}}' web1) && \
+  while true; do \
+    etcdctl set /services/web/web1 \"$COREOS_PRIVATE_IPV4:$SERVICE_PORT\" --ttl 60; \
+    sleep 45; \
+  done"
+ExecStop=/usr/bin/etcdctl rm /services/web/web1
+
+[X-Fleet]
+MachineOf=web.1.service

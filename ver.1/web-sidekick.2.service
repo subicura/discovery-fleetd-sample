@@ -1,0 +1,22 @@
+[Unit]
+Description=Web2 Sidekick Container
+
+Requires=etcd.service
+After=etcd.service
+After=web.2.service
+BindsTo=web.2.service
+
+[Service]
+EnvironmentFile=/etc/environment
+
+ExecStartPre=/bin/sh -c "sleep 5"
+ExecStart=/bin/sh -c \
+  "SERVICE_PORT=$(docker inspect --format='{{(index (index .NetworkSettings.Ports \"80/tcp\") 0).HostPort}}' web2) && \
+  while true; do \
+    etcdctl set /services/web/web2 \"$COREOS_PRIVATE_IPV4:$SERVICE_PORT\" --ttl 60; \
+    sleep 45; \
+  done"
+ExecStop=/usr/bin/etcdctl rm /services/web/web2
+
+[X-Fleet]
+MachineOf=web.2.service

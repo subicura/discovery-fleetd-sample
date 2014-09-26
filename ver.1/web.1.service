@@ -1,0 +1,12 @@
+[Unit]
+Description=Web1 Container
+Requires=docker.service
+After=docker.service
+
+[Service]
+ExecStart=/usr/bin/docker run --rm --name web1 -P subicura/whoami
+ExecStop=/usr/bin/docker stop web1
+
+[X-Fleet]
+MachineMetadata=type=app
+Conflicts=web.*.service

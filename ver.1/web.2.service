@@ -1,0 +1,12 @@
+[Unit]
+Description=Web2 Container
+Requires=docker.service
+After=docker.service
+
+[Service]
+ExecStart=/usr/bin/docker run --rm --name web2 -P subicura/whoami
+ExecStop=/usr/bin/docker stop web2
+
+[X-Fleet]
+MachineMetadata=type=app
+Conflicts=web.*.service
