@@ -22,7 +22,7 @@ ExecStartPre=-/usr/bin/docker rm $SERVICE_NAME
 ExecStartPre=/usr/bin/docker pull $SERVICE_IMAGE_URL
 ExecStart=/usr/bin/docker run --rm \
   --name $SERVICE_NAME \
-  -p 80 \
+  -P \
   $SERVICE_IMAGE_URL
 ExecStop=/usr/bin/docker stop $SERVICE_NAME
 
