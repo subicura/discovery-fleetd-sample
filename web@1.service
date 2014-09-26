@@ -1,0 +1,28 @@
+[Unit]
+Description=Web %i Sidekick Container
+
+Requires=etcd.service
+After=etcd.service
+After=%p_run@%i.service
+BindsTo=%p_run@%i.service
+
+[Service]
+Restart=always
+RestartSec=10s
+
+EnvironmentFile=/etc/environment
+
+Environment="SERVICE_NAME=%p_run-%i"
+Environment="SERVICE_ETCD_KEY=/services/web/%p-%i"
+
+ExecStartPre=/bin/sh -c "sleep 5"
+ExecStart=/bin/sh -c \
+  "SERVICE_PORT=$(docker inspect --format='{{(index (index .NetworkSettings.Ports \"80/tcp\") 0).HostPort}}' $SERVICE_NAME) && \
+  while true; do \
+    etcdctl set $SERVICE_ETCD_KEY \"$COREOS_PRIVATE_IPV4:$SERVICE_PORT\" --ttl 60; \
+    sleep 45; \
+  done"
+ExecStop=/usr/bin/etcdctl rm $SERVICE_ETCD_KEY
+
+[X-Fleet]
+MachineOf=%p_run@%i.service

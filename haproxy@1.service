@@ -1,0 +1,28 @@
+[Unit]
+Description=Haproxy with confd %i
+
+Requires=etcd.service
+Requires=docker.service
+After=etcd.service
+After=docker.service
+
+[Service]
+TimeoutStartSec=0
+
+KillMode=none
+
+Restart=always
+RestartSec=10s
+
+Environment="SERVICE_NAME=%p-%i"
+Environment="SERVICE_IMAGE_URL=subicura/haproxy-confd"
+
+ExecStartPre=-/usr/bin/docker kill $SERVICE_NAME
+ExecStartPre=-/usr/bin/docker rm $SERVICE_NAME
+ExecStartPre=/usr/bin/docker pull $SERVICE_IMAGE_URL
+ExecStart=/usr/bin/docker run --rm --name $SERVICE_NAME -p 8080:80 $SERVICE_IMAGE_URL
+ExecStop=/usr/bin/docker stop $SERVICE_NAME
+
+[X-Fleet]
+MachineMetadata=type=lb
+
